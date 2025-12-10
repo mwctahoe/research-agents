@@ -1,0 +1,27 @@
+{
+  "name": "snake_game",
+  "version": "1.0.0",
+  "description": "A classic Snake game implemented in Electron with React and WebGL",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "start:dev": "cross-env NODE_ENV=development electron .",
+    "build": "vite build",
+    "start": "electron .",
+    "dist": "vite build && electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "cross-env": "^7.0.3",
+    "electron": "^28.2.0",
+    "vite": "^5.0.12"
+  }
+}
