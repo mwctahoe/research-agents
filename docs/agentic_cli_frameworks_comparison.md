@@ -21,10 +21,10 @@ To effectively compare these tools for a personal development environment, we'll
 ---
 
 ## 1. Claude Code (Anthropic)
-Claude Code is Anthropic's official, full-featured CLI tool designed to bring the Claude 3.5 Sonnet model directly into your terminal environment.
+Claude Code is Anthropic's official, full-featured CLI tool designed to bring the Claude 3.7 Sonnet model directly into your terminal environment.
 
 * **Autonomy & Terminal Access:** Highly autonomous. It can read files, edit code, and crucially, *execute terminal commands*. If you tell it to "Fix the failing tests", it will run the tests, read the output, apply fixes, and re-run them until they pass (an agentic loop).
-* **Supported LLMs:** Primarily locked to Anthropic's Claude 3.5 Sonnet (and other Claude family models).
+* **Supported LLMs:** Primarily locked to Anthropic's Claude 3.7 Sonnet (and other Claude family models).
 * **Open-Source vs. Proprietary:** Proprietary. It requires an Anthropic account and authentication.
 * **Editor/IDE Integration:** It is terminal-first but integrates well with workflows where you use an IDE (like Cursor or VS Code) for UI work and a terminal for massive refactors or test suite fixes.
 * **Cost & Pricing:** Usage-based (API costs). **Warning:** Because it runs autonomous loops (Think -> Edit -> Test -> Think), it can consume tokens rapidly. However, it automatically uses Anthropic's Prompt Caching for the project context, which heavily reduces costs on long-running sessions.
@@ -54,7 +54,7 @@ OpenAI's legacy Codex models power the foundation of GitHub Copilot. While OpenA
 Aider is one of the most popular, battle-tested, open-source AI coding tools for the terminal. It is built specifically to pair-program with LLMs.
 
 * **Autonomy & Terminal Access:** High. Aider can edit files, run commands, and execute your test suite. It automatically creates git commits with descriptive messages for every successful change it makes.
-* **Supported LLMs:** Extremely flexible. It benchmarks and supports Claude 3.5 Sonnet, GPT-4o, DeepSeek, and local models via Ollama.
+* **Supported LLMs:** Extremely flexible. It benchmarks and supports Claude 3.7 Sonnet, GPT-4o, DeepSeek, and local models via Ollama.
 * **Open-Source vs. Proprietary:** Open-Source (Python-based).
 * **Editor/IDE Integration:** Excellent. Aider works seamlessly alongside your editor. You can edit files manually in VS Code or Neovim, and Aider will notice the changes and incorporate them into its context.
 * **Cost & Pricing:** Free tool; pay for API usage. Highly optimized for cost by intelligently managing the context window.
@@ -78,7 +78,7 @@ Aider is one of the most popular, battle-tested, open-source AI coding tools for
 ## Recommendations for Leveling Up Your Environment
 
 **If you want the most powerful "Agentic" experience today:**
-Go with **Claude Code** or **Aider** (using Claude 3.5 Sonnet as the backend). Aider is highly recommended because its automatic `git commit` feature provides a safety net when the AI makes sweeping changes. Claude Code is excellent if you want Anthropic's native, highly optimized tooling and sub-agent architecture.
+Go with **Claude Code** or **Aider** (using Claude 3.7 Sonnet as the backend). Aider is highly recommended because its automatic `git commit` feature provides a safety net when the AI makes sweeping changes. Claude Code is excellent if you want Anthropic's native, highly optimized tooling and sub-agent architecture.
 
 **If you want a highly interactive Terminal UI and flexibility:**
 Go with **OpenCode**. If you spend all day in a terminal multiplexer (like Tmux or Zellij) and prefer a Vim-like TUI experience with LSP integration and the ability to swap between Gemini, Claude, and OpenAI depending on the task, OpenCode is the best fit.
