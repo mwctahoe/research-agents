@@ -16,7 +16,7 @@ To install dependencies and build the project for local development:
 ```bash
 git clone <repository_url>
 cd tau
-npm install
+npm install --legacy-peer-deps
 npm run build
 ```
 
