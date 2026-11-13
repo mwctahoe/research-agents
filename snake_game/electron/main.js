@@ -12,18 +12,16 @@ const createWindow = () => {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: true
-    }
+      sandbox: true,
+    },
   });
 
   // In development, load from the vite dev server
   if (process.env.NODE_ENV === 'development') {
     win.loadURL('http://localhost:5173');
-    win.webContents.openDevTools();
+    win.webContents.openDevTools({ mode: 'detach' });
   } else {
     // In production (or when running via electron directly without dev server), load the built file
-    // Adjust path to point to dist/index.html
-    // When running from root: dist/index.html is at ../dist/index.html relative to electron/main.js
     win.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 };
