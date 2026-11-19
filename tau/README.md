@@ -4,7 +4,7 @@ Tau is a terminal user interface application built using the Ink framework. It i
 
 ## Prerequisites
 
-- **Node.js**: `v16.0.0` or higher
+- **Node.js**: `v20.0.0` or higher
 - **npm**: v7 or higher
 - **GitHub CLI (`gh`)**: For the `repo-status` command.
 - **Docker** or **Podman**: For the `clean-up` command.
@@ -16,7 +16,7 @@ To install dependencies and build the project for local development:
 ```bash
 git clone <repository_url>
 cd tau
-npm install --legacy-peer-deps
+npm install
 npm run build
 ```
 
