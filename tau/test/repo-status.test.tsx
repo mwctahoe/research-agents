@@ -5,10 +5,27 @@ import RepoStatus, {
 	type CommandRunner,
 } from '../source/commands/repo-status.js';
 
-const delay = async (ms = 30) =>
-	new Promise<void>(resolve => {
-		setTimeout(resolve, ms);
-	});
+const waitForFrame = async (
+	lastFrame: () => string | undefined,
+	predicate: (frame: string) => boolean,
+	timeoutMs = 1500,
+) => {
+	const deadline = Date.now() + timeoutMs;
+
+	while (Date.now() < deadline) {
+		const frame = lastFrame() ?? '';
+		if (predicate(frame)) {
+			return frame;
+		}
+
+		// eslint-disable-next-line no-await-in-loop
+		await new Promise<void>(resolve => {
+			setTimeout(resolve, 10);
+		});
+	}
+
+	return lastFrame() ?? '';
+};
 
 test('shows loading spinner while fetching repository status', t => {
 	const pendingRunner: CommandRunner = async () =>
@@ -40,9 +57,10 @@ test('renders git status, open PRs, and assigned PRs on success', async t => {
 	};
 
 	const {lastFrame} = render(<RepoStatus runCommand={mockRunner} />);
-	await delay();
+	const output = await waitForFrame(lastFrame, frame =>
+		frame.includes('Git Status'),
+	);
 
-	const output = lastFrame() ?? '';
 	t.is(calls.length, 3);
 	t.true(output.includes('Git Status'));
 	t.true(output.includes('M source/cli.tsx'));
@@ -56,9 +74,10 @@ test('renders empty state messages when commands return empty stdout', async t =
 	const emptyRunner: CommandRunner = async () => ({stdout: ''});
 
 	const {lastFrame} = render(<RepoStatus runCommand={emptyRunner} />);
-	await delay();
+	const output = await waitForFrame(lastFrame, frame =>
+		frame.includes('Working tree clean'),
+	);
 
-	const output = lastFrame() ?? '';
 	t.true(output.includes('Working tree clean'));
 	t.true(output.includes('No open PRs in this repo'));
 	t.true(output.includes('No PRs assigned to you'));
@@ -70,9 +89,10 @@ test('renders fallback messages when git and gh commands fail', async t => {
 	};
 
 	const {lastFrame} = render(<RepoStatus runCommand={failingRunner} />);
-	await delay();
+	const output = await waitForFrame(lastFrame, frame =>
+		frame.includes('Not a git repository or git error'),
+	);
 
-	const output = lastFrame() ?? '';
 	t.true(output.includes('Not a git repository or git error'));
 	t.true(
 		output.includes('Could not fetch PRs (not a github repo or gh CLI error)'),

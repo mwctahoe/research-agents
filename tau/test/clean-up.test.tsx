@@ -3,9 +3,31 @@ import test from 'ava';
 import {render} from 'ink-testing-library';
 import CleanUp, {type CommandRunner} from '../source/commands/clean-up.js';
 
-const delay = async (ms = 30) =>
+const waitForFrame = async (
+	lastFrame: () => string | undefined,
+	predicate: (frame: string) => boolean,
+	timeoutMs = 1500,
+) => {
+	const deadline = Date.now() + timeoutMs;
+
+	while (Date.now() < deadline) {
+		const frame = lastFrame() ?? '';
+		if (predicate(frame)) {
+			return frame;
+		}
+
+		// eslint-disable-next-line no-await-in-loop
+		await new Promise<void>(resolve => {
+			setTimeout(resolve, 10);
+		});
+	}
+
+	return lastFrame() ?? '';
+};
+
+const flushEffects = async () =>
 	new Promise<void>(resolve => {
-		setTimeout(resolve, ms);
+		setTimeout(resolve, 50);
 	});
 
 test('shows checking spinner while detecting container CLI', t => {
@@ -29,9 +51,10 @@ test('detects podman when available and prompts for confirmation', async t => {
 	};
 
 	const {lastFrame, unmount} = render(<CleanUp runCommand={mockRunner} />);
-	await delay();
+	const output = await waitForFrame(lastFrame, frame =>
+		frame.includes('Are you sure you want to proceed?'),
+	);
 
-	const output = lastFrame() ?? '';
 	t.true(output.includes('Warning: Destructive Action'));
 	t.true(output.includes('podman system prune -a --volumes -f'));
 	t.true(output.includes('Are you sure you want to proceed?'));
@@ -52,9 +75,10 @@ test('falls back to docker when podman is not installed', async t => {
 	};
 
 	const {lastFrame, unmount} = render(<CleanUp runCommand={mockRunner} />);
-	await delay();
+	const output = await waitForFrame(lastFrame, frame =>
+		frame.includes('docker system prune'),
+	);
 
-	const output = lastFrame() ?? '';
 	t.true(output.includes('docker system prune -a --volumes -f'));
 	unmount();
 });
@@ -65,9 +89,10 @@ test('shows error when neither docker nor podman is installed', async t => {
 	};
 
 	const {lastFrame} = render(<CleanUp runCommand={failingRunner} />);
-	await delay();
+	const output = await waitForFrame(lastFrame, frame =>
+		frame.includes('Error:'),
+	);
 
-	const output = lastFrame() ?? '';
 	t.true(
 		output.includes('Error: Neither Docker nor Podman seems to be installed.'),
 	);
@@ -83,12 +108,17 @@ test('aborts clean-up when user declines confirmation', async t => {
 	};
 
 	const {stdin, lastFrame} = render(<CleanUp runCommand={mockRunner} />);
-	await delay();
+	await waitForFrame(lastFrame, frame =>
+		frame.includes('Are you sure you want to proceed?'),
+	);
+	await flushEffects();
 
 	stdin.write('n');
-	await delay();
+	const output = await waitForFrame(lastFrame, frame =>
+		frame.includes('Clean-up aborted.'),
+	);
 
-	t.true(lastFrame()?.includes('Clean-up aborted.'));
+	t.true(output.includes('Clean-up aborted.'));
 });
 
 test('shows running spinner, executes system prune, and displays output when user confirms', async t => {
@@ -112,21 +142,27 @@ test('shows running spinner, executes system prune, and displays output when use
 	};
 
 	const {stdin, lastFrame} = render(<CleanUp runCommand={mockRunner} />);
-	await delay();
+	await waitForFrame(lastFrame, frame =>
+		frame.includes('Are you sure you want to proceed?'),
+	);
+	await flushEffects();
 
 	stdin.write('y');
-	await delay();
+	const runningOutput = await waitForFrame(lastFrame, frame =>
+		frame.includes('Running podman system prune... This may take a while.'),
+	);
 
 	t.true(
-		lastFrame()?.includes(
+		runningOutput.includes(
 			'Running podman system prune... This may take a while.',
 		),
 	);
 
 	resolvePrune?.({stdout: 'Total reclaimed space: 1.2GB'});
-	await delay();
+	const output = await waitForFrame(lastFrame, frame =>
+		frame.includes('Successfully cleaned up using podman:'),
+	);
 
-	const output = lastFrame() ?? '';
 	t.true(output.includes('Successfully cleaned up using podman:'));
 	t.true(output.includes('Total reclaimed space: 1.2GB'));
 	t.deepEqual(calls[1], {
@@ -149,12 +185,16 @@ test('displays error message when system prune fails with Error instance', async
 	};
 
 	const {stdin, lastFrame} = render(<CleanUp runCommand={mockRunner} />);
-	await delay();
+	await waitForFrame(lastFrame, frame =>
+		frame.includes('Are you sure you want to proceed?'),
+	);
+	await flushEffects();
 
 	stdin.write('y');
-	await delay();
+	const output = await waitForFrame(lastFrame, frame =>
+		frame.includes('Error:'),
+	);
 
-	const output = lastFrame() ?? '';
 	t.true(output.includes('Error: Cannot connect to the Docker daemon'));
 });
 
@@ -173,11 +213,15 @@ test('displays fallback error message when system prune rejects with non-Error v
 	};
 
 	const {stdin, lastFrame} = render(<CleanUp runCommand={mockRunner} />);
-	await delay();
+	await waitForFrame(lastFrame, frame =>
+		frame.includes('Are you sure you want to proceed?'),
+	);
+	await flushEffects();
 
 	stdin.write('y');
-	await delay();
+	const output = await waitForFrame(lastFrame, frame =>
+		frame.includes('Error:'),
+	);
 
-	const output = lastFrame() ?? '';
 	t.true(output.includes('Error: Failed to clean up using podman.'));
 });
