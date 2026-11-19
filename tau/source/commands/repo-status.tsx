@@ -3,11 +3,23 @@ import {Text, Box} from 'ink';
 import {execa} from 'execa';
 import {Spinner} from '@inkjs/ui';
 
-export default function RepoStatus() {
+export type CommandResult = {
+	readonly stdout: unknown;
+};
+
+export type CommandRunner = (
+	file: string,
+	arguments_?: readonly string[],
+) => Promise<CommandResult>;
+
+type Props = {
+	readonly runCommand?: CommandRunner;
+};
+
+export default function RepoStatus({runCommand = execa}: Props) {
 	const [gitStatus, setGitStatus] = useState<string | undefined>();
 	const [openPrs, setOpenPrs] = useState<string | undefined>();
 	const [assignedPrs, setAssignedPrs] = useState<string | undefined>();
-	const [error, setError] = useState<string | undefined>();
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
@@ -15,7 +27,7 @@ export default function RepoStatus() {
 			try {
 				// Get git status
 				try {
-					const result = await execa('git', ['status', '--short']);
+					const result = await runCommand('git', ['status', '--short']);
 					setGitStatus(String(result.stdout) || 'Working tree clean');
 				} catch {
 					setGitStatus('Not a git repository or git error');
@@ -23,7 +35,7 @@ export default function RepoStatus() {
 
 				// Check open PRs in current repo
 				try {
-					const result = await execa('gh', [
+					const result = await runCommand('gh', [
 						'pr',
 						'list',
 						'--state',
@@ -38,7 +50,7 @@ export default function RepoStatus() {
 
 				// Check PRs assigned to current user
 				try {
-					const result = await execa('gh', [
+					const result = await runCommand('gh', [
 						'pr',
 						'list',
 						'--assignee',
@@ -52,27 +64,13 @@ export default function RepoStatus() {
 				} catch {
 					setAssignedPrs('Could not fetch assigned PRs');
 				}
-			} catch (error_: unknown) {
-				const errorMessage =
-					error_ instanceof Error
-						? error_.message
-						: 'An error occurred while fetching repository status.';
-				setError(errorMessage);
 			} finally {
 				setLoading(false);
 			}
 		}
 
 		void fetchStatus();
-	}, []);
-
-	if (error) {
-		return (
-			<Box borderColor="red" borderStyle="round" margin={1} padding={1}>
-				<Text color="red">Error: {error}</Text>
-			</Box>
-		);
-	}
+	}, [runCommand]);
 
 	if (loading) {
 		return (

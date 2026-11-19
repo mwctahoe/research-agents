@@ -3,7 +3,20 @@ import {Text, Box} from 'ink';
 import {execa} from 'execa';
 import {ConfirmInput, Spinner} from '@inkjs/ui';
 
-export default function CleanUp() {
+export type CommandResult = {
+	readonly stdout: unknown;
+};
+
+export type CommandRunner = (
+	file: string,
+	arguments_?: readonly string[],
+) => Promise<CommandResult>;
+
+type Props = {
+	readonly runCommand?: CommandRunner;
+};
+
+export default function CleanUp({runCommand = execa}: Props) {
 	const [cli, setCli] = useState<'docker' | 'podman' | undefined>();
 	const [checking, setChecking] = useState(true);
 	const [running, setRunning] = useState(false);
@@ -14,11 +27,11 @@ export default function CleanUp() {
 		async function checkInstallation() {
 			try {
 				try {
-					await execa('which', ['podman']);
+					await runCommand('which', ['podman']);
 					setCli('podman');
 					setChecking(false);
 				} catch {
-					await execa('which', ['docker']);
+					await runCommand('which', ['docker']);
 					setCli('docker');
 					setChecking(false);
 				}
@@ -29,14 +42,14 @@ export default function CleanUp() {
 		}
 
 		void checkInstallation();
-	}, []);
+	}, [runCommand]);
 
 	const handleConfirm = async () => {
 		setRunning(true);
 		try {
 			if (!cli) throw new Error('No CLI tool found');
 
-			const execResult = await execa(cli, [
+			const execResult = await runCommand(cli, [
 				'system',
 				'prune',
 				'-a',
