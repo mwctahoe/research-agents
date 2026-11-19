@@ -24,7 +24,13 @@ A classic Snake game implementation using Electron for the desktop environment, 
 ## Running the App
 
 ### Development Mode
-To run the app in development mode with hot reloading:
+To run the app in development mode with hot reloading in a single command:
+
+```bash
+npm run dev:electron
+```
+
+Or run the Vite dev server and Electron in separate terminals:
 
 1.  Start the Vite dev server:
     ```bash
@@ -52,3 +58,17 @@ To build and run the production version:
     ```bash
     npm run dist
     ```
+
+## Testing
+
+Run the Vitest unit test suite:
+
+```bash
+npm test
+```
+
+## Controls
+
+*   **Arrow Keys / WASD**: Move snake
+*   **Space / P**: Start, pause, or resume
+*   **R / Enter**: Restart after Game Over or Victory
